@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException, APIRouter, Query
 from typing import List, Optional
 from decimal import Decimal
-from fastapi import HTTPException
 from app.models import Product
 from app.api.services.product_service import ProductService
 
