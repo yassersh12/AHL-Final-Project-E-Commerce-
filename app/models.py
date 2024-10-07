@@ -41,9 +41,19 @@ class TokenData(BaseModel):
 
 
 class UserDTO(BaseModel):
-    id: UUID
-    username: str
-    email: EmailStr
+    id: Optional[UUID] = Field(
+        None, description="User ID. Automatically generated upon user creation."
+    )
+    username: str = Field(..., description="User Name.")
+    email: EmailStr = Field(..., description="The email address of the user.")
+    is_admin: bool = Field(False, description="Admin or not?")
+    is_active: bool = Field(True, description="User active or not?")
+    created_at: Optional[datetime] = Field(
+        None, description="The date and time when the user was created."
+    )
+    updated_at: Optional[datetime] = Field(
+        None, description="The date and time when the user was last updated."
+    )
 
     class Config:
         orm_mode = True

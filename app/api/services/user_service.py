@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional, Dict, List
 from app.models import User
 import bcrypt
+from app.api.exceptions.GlobalException import EmailAlreadyExistsException
 
 
 class UserService:
@@ -18,7 +19,7 @@ class UserService:
         if any(
             existing_user.email == user.email for existing_user in self.users.values()
         ):
-            raise ValueError("Email is already registered")
+            raise EmailAlreadyExistsException()
 
         user_id = str(uuid4())
         user.id = user_id
@@ -36,6 +37,13 @@ class UserService:
     def update_user(self, user_id: str, updated_user: User) -> Optional[User]:
         current_user = self.users.get(user_id)
         if current_user:
+            for existing_user_id, existing_user in self.users.items():
+                if (
+                    existing_user.email == updated_user.email
+                    and existing_user_id != user_id
+                ):
+                    raise EmailAlreadyExistsException()
+
             updated_user.id = user_id
             updated_user.updated_at = datetime.now()
             self.users[user_id] = updated_user
