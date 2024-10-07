@@ -38,3 +38,13 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: UUID | None = None
+
+
+class UserDTO(BaseModel):
+    id: UUID
+    username: str
+    email: EmailStr
+
+    class Config:
+        orm_mode = True
+        from_attributes = True

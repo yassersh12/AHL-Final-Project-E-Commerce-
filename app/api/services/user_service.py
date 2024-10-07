@@ -2,13 +2,24 @@ from uuid import uuid4, UUID
 from datetime import datetime
 from typing import Optional, Dict, List
 from app.models import User
+import bcrypt
 
 
 class UserService:
     def __init__(self):
         self.users: Dict[UUID, User] = {}
 
+    def hash_password(self, password: str) -> str:
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
     def create_user(self, user: User) -> User:
+
+        if any(
+            existing_user.email == user.email for existing_user in self.users.values()
+        ):
+            raise ValueError("Email is already registered")
+
         user_id = str(uuid4())
         user.id = user_id
         user.created_at = datetime.now()
