@@ -19,6 +19,12 @@ class ProductService:
     def get_product(self, productId: str) -> Optional[Product]:
         return self.products.get(productId)
 
+    def get_product_by_name(self, name: str) -> Optional[Product]:
+        for product in self.products.values():
+            if product.name == name:
+                return product
+        return None
+
     def update_product(
         self, productId: str, updated_product: Product
     ) -> Optional[Product]:

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, APIRouter, Query
+from fastapi import FastAPI, HTTPException, APIRouter, Query, status
 from typing import List, Optional
 from decimal import Decimal
 from app.models import Product
@@ -10,6 +10,12 @@ product_service = ProductService()
 
 @router.post("/products", response_model=Product)
 def create_product(product: Product):
+    existing_product = product_service.get_product_by_name(product.name)
+    if existing_product:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Product name -> '{product.name}' already exists  !  . ",
+        )
     return product_service.create_product(product)
 
 
