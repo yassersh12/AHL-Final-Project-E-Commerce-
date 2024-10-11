@@ -42,3 +42,6 @@ coverage/
 # IDE-specific files
 .vscode/
 .idea/
+
+# Docker
+docker-compose.yml

@@ -1,11 +1,17 @@
 from fastapi import FastAPI
-from app.models import Product
-from app.api.routes.product import router as product_router
-from app.api.routes.user import router as user_router
+from app.db.database import Base, engine
+from app.api.routes import user
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-app.include_router(product_router)
-app.include_router(user_router)
+
+app.include_router(user.router, tags=["users"])
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the User Management API"}
 
 
 @app.get("/hello")

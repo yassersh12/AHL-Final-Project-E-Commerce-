@@ -1,10 +1,15 @@
-from fastapi import APIRouter
+from fastapi import FastAPI
+from app.api.main import api_router
+from app.db.database import engine
+from app import models
 
-from app.api.routes import user, login, status, order, product
+models.Base.metadata.create_all(bind=engine)
 
-api_router = APIRouter()
-api_router.include_router(login.router, prefix="/login", tags=["login"])
-api_router.include_router(user.router, prefix="/users", tags=["users"])
-api_router.include_router(status.router, prefix="/statuses", tags=["statuses"])
-api_router.include_router(order.router, prefix="/orders", tags=["orders"])
-api_router.include_router(product.router, prefix="/products", tags=["products"])
+app = FastAPI()
+
+app.include_router(api_router)
+
+
+@app.get("/hello")
+def read_helo():
+    return {"message": "Hello, World!"}

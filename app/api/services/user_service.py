@@ -1,54 +1,71 @@
-from uuid import uuid4, UUID
-from datetime import datetime
-from typing import Optional, Dict, List
+from sqlalchemy.orm import Session
 from app.models import User
-import bcrypt
-from app.api.exceptions.GlobalException import EmailAlreadyExistsException
+from app.schemas.user import UserCreate
+from passlib.context import CryptContext
+from app.db import database
+from app.api.dependencies.password_utils import validate_password
+from app.api.exceptions.GlobalException import (
+    InvalidPasswordException,
+    EmailAlreadyExistsException,
+    UserNotFoundException,
+)
+from fastapi import HTTPException
+from app.models import UserDTO, UserResponse, UserUpdateDTO
+import logging
+from uuid import UUID
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class UserService:
-    def __init__(self):
-        self.users: Dict[UUID, User] = {}
+    def __init__(self, db: Session):
+        self.db = db
 
-    def hash_password(self, password: str) -> str:
-        salt = bcrypt.gensalt()
-        return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
-
-    def create_user(self, user: User) -> User:
-
-        if any(
-            existing_user.email == user.email for existing_user in self.users.values()
-        ):
+    def create_user(self, user: UserCreate):
+        if self.db.query(User).filter(User.email == user.email).first():
             raise EmailAlreadyExistsException()
+        validate_password(user.password)
+        hashed_password = pwd_context.hash(user.password)
+        new_user = User(
+            username=user.username, email=user.email, hashed_password=hashed_password
+        )
+        self.db.add(new_user)
+        self.db.commit()
+        self.db.refresh(new_user)
+        return new_user
 
-        user_id = str(uuid4())
-        user.id = user_id
-        user.created_at = datetime.now()
-        user.updated_at = None
-        self.users[user_id] = user
+    def get_user(self, user_id: UUID):
+        try:
+            user = self.db.query(User).filter(User.id == user_id).first()
+        except ValueError:
+            raise UserNotFoundException()
+
+        if not user:
+            raise UserNotFoundException()
         return user
 
-    def get_user(self, user_id: str) -> Optional[User]:
-        return self.users.get(user_id)
+    def update_user(self, user_id: UUID, user_data: UserUpdateDTO):
+        user = self.get_user(user_id)
 
-    def get_all_users(self) -> List[User]:
-        return list(self.users.values())
+        if user_data.username is not None:
+            user.username = user_data.username
 
-    def update_user(self, user_id: str, updated_user: User) -> Optional[User]:
-        current_user = self.users.get(user_id)
-        if current_user:
-            for existing_user_id, existing_user in self.users.items():
-                if (
-                    existing_user.email == updated_user.email
-                    and existing_user_id != user_id
-                ):
-                    raise EmailAlreadyExistsException()
+        if user_data.password:
+            validate_password(user_data.password)
+            user.hashed_password = pwd_context.hash(user_data.password)
 
-            updated_user.id = user_id
-            updated_user.updated_at = datetime.now()
-            self.users[user_id] = updated_user
-            return self.users.get(user_id)
-        return None
+        self.db.commit()
+        self.db.refresh(user)
+        return UserResponse.from_orm(user)
 
-    def delete_user(self, user_id: str) -> Optional[User]:
-        return self.users.pop(user_id, None)
+    def delete_user(self, user_id: UUID):
+        user = self.get_user(user_id)
+
+        if user:
+            self.db.delete(user)
+            self.db.commit()
+            return user
+        raise UserNotFoundException()
+
+    def get_all_users(self):
+        return self.db.query(User).all()
