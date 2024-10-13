@@ -23,34 +23,3 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
-
-
-class UserDTO(BaseModel):
-    username: str = Field(None)
-    email: EmailStr = Field(None)
-    password: str = Field(None)
-
-
-class UserResponse(BaseModel):
-    id: UUID
-    username: str
-    email: EmailStr
-    is_admin: bool
-    is_active: bool
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-        orm_mode = True
-        arbitrary_types_allowed = True
-
-
-class UserUpdateDTO(BaseModel):
-    username: str = Field(None)
-    password: str = Field(None)
-
-    class Config:
-        from_attributes = True
-        orm_mode = True
-        arbitrary_types_allowed = True

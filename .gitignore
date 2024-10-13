@@ -44,4 +44,4 @@ coverage/
 .idea/
 
 # Docker
-docker-compose.yml
+.env

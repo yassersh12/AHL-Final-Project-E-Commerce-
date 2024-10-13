@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 import re
-from app.api.exceptions.GlobalException import InvalidPasswordException
+from app.api.exceptions.global_exceptions import InvalidPasswordException
 
 
 def validate_password(password: str):

@@ -1,12 +1,13 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from uuid import UUID
 from datetime import datetime
+from typing import Optional
 
 
-class UserCreate(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
+class UserCreateRequest(BaseModel):
+    username: str = Field(None)
+    email: EmailStr = Field(None)
+    password: str = Field(None)
 
 
 class UserResponse(BaseModel):
@@ -20,3 +21,16 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        orm_mode = True
+        arbitrary_types_allowed = True
+
+
+class UserUpdateRequest(BaseModel):
+    username: Optional[str] = Field(None)
+    password: Optional[str] = Field(None)
+    email: Optional[EmailStr] = Field(None)
+
+    class Config:
+        from_attributes = True
+        orm_mode = True
+        arbitrary_types_allowed = True
