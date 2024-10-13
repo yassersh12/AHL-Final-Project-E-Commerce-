@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  new_fastapi_db:
+    image: postgres:16
+    container_name: new_fastapi_db_container
+    env_file:
+      - .env
+    ports:
+      - "5433:5432" 
+    volumes:
+      - new_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  new_postgres_data:
