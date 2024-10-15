@@ -76,19 +76,13 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except InvalidTokenError:
-        raise credentials_exception
     except Exception as e:
         print(f"An error occurred while decoding token: {e}")
         raise credentials_exception
-    try:
-        user = get_user(user_db, username=token_data.username)
-        if user is None:
-            raise credentials_exception
-        return user
-    except Exception as e:
-        print(f"An error occurred while getting current user: {e}")
+    user = get_user(user_db, username=token_data.username)
+    if user is None:
         raise credentials_exception
+    return user
 
 
 async def get_current_active_user(
