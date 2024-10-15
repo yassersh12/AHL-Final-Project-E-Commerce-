@@ -4,7 +4,7 @@ from datetime import timedelta
 from app.models import *
 from app.api.dependencies.auth import *
 from app.api.dependencies.password_utils import *
-
+from fastapi import APIRouter
 
 router = APIRouter()
 
