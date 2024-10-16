@@ -1,16 +1,15 @@
-version: '3.8'
-
 services:
   new_fastapi_db:
     image: postgres:16
     container_name: new_fastapi_db_container
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-default_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-default_password}
+      POSTGRES_DB: ${POSTGRES_DB:-default_db}
     ports:
-      - "5433:5432" 
+      - "5433:5432"
     volumes:
       - new_postgres_data:/var/lib/postgresql/data
 
 volumes:
   new_postgres_data:
-  #

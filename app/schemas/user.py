@@ -17,7 +17,7 @@ class UserResponse(BaseModel):
     is_admin: bool
     is_active: bool
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = Field(default=None)
 
     class Config:
         from_attributes = True
