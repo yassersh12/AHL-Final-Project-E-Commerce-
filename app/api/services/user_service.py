@@ -5,7 +5,6 @@ from passlib.context import CryptContext
 from app.db import database
 from app.api.dependencies.password_utils import validate_password
 from app.api.exceptions.global_exceptions import (
-    InvalidPasswordException,
     EmailAlreadyExistsException,
     UserNotFoundException,
 )
