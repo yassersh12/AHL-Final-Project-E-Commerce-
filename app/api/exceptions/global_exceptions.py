@@ -41,6 +41,9 @@ class UserNotFoundException(HTTPException):
         )
 
 
+#
+
+
 class InvalidUUIDException(HTTPException):
     def __init__(self):
         super().__init__(

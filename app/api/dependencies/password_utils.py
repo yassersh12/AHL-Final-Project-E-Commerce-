@@ -19,3 +19,6 @@ def validate_password(password: str):
 
     if errors:
         raise InvalidPasswordException(errors)
+
+
+#

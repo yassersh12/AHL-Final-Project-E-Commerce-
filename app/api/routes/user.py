@@ -69,3 +69,6 @@ def delete_user(user_id: str, db: Session = Depends(get_db)):
 def get_all_users(db: Session = Depends(get_db)):
     service = UserService(db)
     return service.get_all_users()
+
+
+#

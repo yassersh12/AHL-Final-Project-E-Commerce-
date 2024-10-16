@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
         arbitrary_types_allowed = True
 
 
+#
 class UserUpdateRequest(BaseModel):
     username: Optional[str] = Field(None)
     password: Optional[str] = Field(None)
