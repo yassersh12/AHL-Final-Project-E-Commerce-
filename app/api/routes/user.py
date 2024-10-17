@@ -14,13 +14,13 @@ from uuid import UUID
 router = APIRouter()
 
 
-@router.post("/users", response_model=UserResponse)
+@router.post("/", response_model=UserResponse)
 def create_user(user: UserCreateRequest, db: Session = Depends(get_db)):
     service = UserService(db)
     return service.create_user(user)
 
 
-@router.get("/users/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=UserResponse)
 def get_user(user_id: str, db: Session = Depends(get_db)):
     try:
         user_uuid = UUID(user_id)
@@ -36,7 +36,7 @@ def get_user(user_id: str, db: Session = Depends(get_db)):
         )
 
 
-@router.put("/users/{user_id}", response_model=UserResponse)
+@router.put("/{user_id}", response_model=UserResponse)
 def update_user(
     user_id: str, user_data: UserUpdateRequest, db: Session = Depends(get_db)
 ):
@@ -49,7 +49,7 @@ def update_user(
     return service.update_user(user_uuid, user_data)
 
 
-@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: str, db: Session = Depends(get_db)):
     try:
         user_uuid = UUID(user_id)
@@ -65,7 +65,7 @@ def delete_user(user_id: str, db: Session = Depends(get_db)):
         )
 
 
-@router.get("/users", response_model=list[UserResponse])
+@router.get("/", response_model=list[UserResponse])
 def get_all_users(db: Session = Depends(get_db)):
     service = UserService(db)
     return service.get_all_users()
