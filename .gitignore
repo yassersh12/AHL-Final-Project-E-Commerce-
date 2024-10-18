@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+
+# pip
+*.log
+pip-log.txt
+
+# dotenv environment variables file
+.env
+
+
+# Pyre type checker
+.pyre/
+
+# Test results
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.tox/
+.nox/
+coverage/
+
+# Translations
+*.mo
+*.pot
+
+# macOS-specific files
+.DS_Store
+
+# SQLite Database files (if using SQLite locally)
+*.sqlite3
+*.db
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Docker
+.env
+#
