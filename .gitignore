@@ -15,6 +15,7 @@ pip-log.txt
 
 # GitHub folder (ignore unless using workflows)
 .github/
+=======
 
 # Pyre type checker
 .pyre/
@@ -43,5 +44,3 @@ coverage/
 .vscode/
 .idea/
 
-# Docker
-.env
