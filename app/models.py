@@ -8,7 +8,18 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 
 
-#
+class TokenData(BaseModel):
+    username: UUID | None = None
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class UserInDB(User):
+    hashed_password: str
+
 class User(Base):
     __tablename__ = "users"
 

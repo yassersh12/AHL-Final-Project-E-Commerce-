@@ -13,6 +13,9 @@ pip-log.txt
 # dotenv environment variables file
 .env
 
+# GitHub folder (ignore unless using workflows)
+.github/
+=======
 
 # Pyre type checker
 .pyre/
@@ -41,6 +44,3 @@ coverage/
 .vscode/
 .idea/
 
-# Docker
-.env
-#

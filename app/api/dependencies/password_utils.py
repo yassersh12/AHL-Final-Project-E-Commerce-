@@ -1,6 +1,10 @@
-from fastapi import HTTPException, status
+
 import re
-from app.api.exceptions.global_exceptions import InvalidPasswordException
+from app.api.exceptions.GlobalException import InvalidPasswordException
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 
 def validate_password(password: str):
@@ -21,4 +25,10 @@ def validate_password(password: str):
         raise InvalidPasswordException(errors)
 
 
-#
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
