@@ -25,6 +25,7 @@ def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
 
 
 # this method only for admins to regiter users
+@router.post("/", response_model=UserResponse)
 def create_user(
     user: UserCreateRequest,
     db: Session = Depends(get_db),
