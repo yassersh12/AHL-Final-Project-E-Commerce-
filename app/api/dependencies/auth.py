@@ -98,18 +98,10 @@ async def get_current_active_user(
 
 
 async def get_current_active_admin(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[User, Depends(get_current_active_user)]
 ):
-    try:
-        if not current_user.active:
-            raise HTTPException(status_code=400, detail="Inactive user")
-        if not current_user.is_admin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Not enough privileges"
-            )
-        return current_user
-    except Exception as e:
-        print(f"An error occurred while getting current active admin: {e}")
+    if not current_user.is_admin:
         raise HTTPException(
-            status_code=400, detail="Error getting current active admin"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough privileges"
         )
+    return current_user
