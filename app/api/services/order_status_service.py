@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 from app.api.exceptions.global_exceptions import StatusAlreadyExistsException, StatusNotFoundException
 from app.models import OrderStatus
 
@@ -17,5 +18,11 @@ class OrderStatusService:
     def get_order_status_by_name(self, name: str) -> OrderStatus:
         for status in self.order_statuses:
             if status.name == name:
+                return status
+        raise StatusNotFoundException()
+    
+    def get_order_status_by_id(self, status_id: UUID) -> OrderStatus:
+        for status in self.order_statuses:
+            if status.id == status_id:
                 return status
         raise StatusNotFoundException()
