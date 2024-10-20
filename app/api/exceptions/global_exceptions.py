@@ -40,13 +40,54 @@ class UserNotFoundException(HTTPException):
             detail="User not found",
         )
 
-
-#
-
-
 class InvalidUUIDException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The provided user ID is not a valid UUID.",
         )
+
+class ProductDoesNotExistException(HTTPException):
+    def __init__(self, item_number: int = None):
+        if item_number is not None:
+            detail_message = f"Product {item_number} does not exist, enter a valid product_id"
+        else:
+            detail_message = "Product_id does not exist, enter a valid id"
+            
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=detail_message,
+        )
+
+class OutOfStockException(HTTPException):
+    def __init__(self, item_number: int = None):
+        if item_number is not None:
+            detail_message = f"Quantity for product {item_number} is higher than the stock."
+        else:
+            detail_message = "Quantity for the product is higher than the stock."
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=detail_message,
+        )
+
+class OrderNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found",
+        )
+
+class StatusNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Status not found",
+        )
+
+class InternalServerErrorException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail=f"An unexpected error occurred."
+        )
+
