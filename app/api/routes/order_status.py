@@ -40,7 +40,7 @@ def update_order_status(status_id: UUID, name: str):
 
     return updated_status
 
-@router.delete("/statuses/{status_id}", status_code=status.HTTP_200_OK)
+@router.delete("/statuses/{status_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_order_status(status_id: UUID):
     try:
         order_status_service.remove_order_status(status_id=status_id)
