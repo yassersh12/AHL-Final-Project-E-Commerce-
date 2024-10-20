@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 from uuid import UUID
 from app.api.exceptions.global_exceptions import StatusAlreadyExistsException, StatusNotFoundException
@@ -25,4 +26,16 @@ class OrderStatusService:
         for status in self.order_statuses:
             if status.id == status_id:
                 return status
+        raise StatusNotFoundException()
+    
+    def update_order_status(self, status_id: UUID, name: str) -> OrderStatus:
+        if any(status.name == name for status in self.order_statuses):
+            raise StatusAlreadyExistsException()
+
+        for status in self.order_statuses:
+            if status.id == status_id:
+                status.name = name
+                status.updated_at = datetime.now()
+                return status
+        
         raise StatusNotFoundException()

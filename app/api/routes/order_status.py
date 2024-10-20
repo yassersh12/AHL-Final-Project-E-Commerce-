@@ -24,9 +24,26 @@ def create_order_status(name: str):
 def get_order_status_by_id(status_id: UUID):
     try:
         order_status = order_status_service.get_order_status_by_id(status_id=status_id)
-    except StatusNotFoundException:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Status not found")
+    except StatusNotFoundException as e:
+        raise e
     except Exception:
         raise InternalServerErrorException()
 
     return order_status
+
+
+@router.put("/statuses/{status_id}", status_code=status.HTTP_200_OK)
+def update_order_status(status_id: UUID, name: str):
+    if not name or not isinstance(name, str):
+        raise StatusNameInvalidException()
+
+    try:
+        updated_status = order_status_service.update_order_status(status_id=status_id, name=name)
+    except StatusNotFoundException as e:
+        raise e
+    except StatusAlreadyExistsException as e:
+        raise e
+    except Exception:
+        raise InternalServerErrorException()
+
+    return updated_status
