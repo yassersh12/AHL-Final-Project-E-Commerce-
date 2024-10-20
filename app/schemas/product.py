@@ -50,12 +50,6 @@ class ProductUpdate(BaseModel):
     stock: int = Field(None)
     is_available: bool = Field(None)
 
-    @validator("name", always=True)
-    def validate_name(cls, v):
-        if v is not None and len(v.strip()) == 0:
-            raise ValueError("Product name cannot be empty")
-        return v
-
     class Config:
         from_attributes = True
         orm_mode = True

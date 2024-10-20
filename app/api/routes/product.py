@@ -12,13 +12,11 @@ from uuid import UUID
 from typing import List, Optional, Dict
 from app.api.exceptions.global_exceptions import (
     ProductAlreadyExistsException,
-    PriceValidationException,
     ProductNotFoundException,
-    StockValidationException,
     InvalidUUIDException,
-    InvalidProductDataException,
-    ProductValidationException,
+    DatabaseCommitException,
 )
+from sqlalchemy.exc import IntegrityError
 from app.api.dependencies.product_validator import ProductValidator
 from app.models import Product
 
@@ -29,17 +27,27 @@ router = APIRouter()
 def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
     service = ProductService(db)
 
-    if service._is_product_existing(name=product_data.name):
+    try:
+        if service._is_product_existing(name=product_data.name):
+            raise ProductAlreadyExistsException()
+
+        new_product = Product(**product_data.dict())
+        db.add(new_product)
+
+        db.commit()
+        db.refresh(new_product)
+
+        return new_product
+
+    except ProductAlreadyExistsException:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Product already exists."
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Product Already Exist.",
         )
 
-    new_product = Product(**product_data.dict())
-    db.add(new_product)
-    db.commit()
-    db.refresh(new_product)
-
-    return new_product
+    except IntegrityError:
+        db.rollback()
+        raise DatabaseCommitException()
 
 
 @router.get("/{product_id}", response_model=ProductResponse)

@@ -1,11 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models import Product
-from app.schemas.product import ProductCreate, ProductUpdate
 from app.api.exceptions.global_exceptions import (
-    InvalidProductDataException,
     ProductAlreadyExistsException,
-    PriceValidationException,
-    StockValidationException,
 )
 
 
