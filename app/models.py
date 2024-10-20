@@ -33,3 +33,9 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+class OrderStatus(BaseModel):
+    id: UUID = Field(default_factory=lambda: uuid4(), description="order_status ID.")
+    name: str = Field("pending", description="Name of the order_status.", unique=True)
+    created_at: datetime = Field(datetime.now, description="Time the order_status is created at.")
+    updated_at: datetime = Field(None, description="Time of the last update for the order_status.")
