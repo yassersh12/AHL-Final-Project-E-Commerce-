@@ -98,6 +98,13 @@ class StatusNameInvalidException(HTTPException):
             detail="Order status name is required and must be a string.",
         )
 
+class StatusInUseException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Status cannot be deleted because it is in use"
+        )
+
 class InternalServerErrorException(HTTPException):
     def __init__(self):
         super().__init__(

@@ -1,7 +1,7 @@
 import datetime
 from typing import List
 from uuid import UUID
-from app.api.exceptions.global_exceptions import StatusAlreadyExistsException, StatusNotFoundException
+from app.api.exceptions.global_exceptions import StatusAlreadyExistsException, StatusInUseException, StatusNotFoundException
 from app.models import OrderStatus
 
 class OrderStatusService:
@@ -39,3 +39,14 @@ class OrderStatusService:
                 return status
         
         raise StatusNotFoundException()
+    
+    def is_status_in_use(self, status_id: UUID) -> bool:
+        return any(order.status_id == status_id for order in self.orders)
+
+    def remove_order_status(self, status_id: UUID):
+        status_to_remove = self.get_order_status_by_id(status_id)
+        
+        if self.is_status_in_use(status_id):
+            raise StatusInUseException()
+
+        self.order_statuses = [status for status in self.order_statuses if status.id != status_id]

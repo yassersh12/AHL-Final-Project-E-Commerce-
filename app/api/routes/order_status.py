@@ -1,5 +1,5 @@
 from uuid import UUID
-from app.api.exceptions.global_exceptions import InternalServerErrorException, StatusAlreadyExistsException, StatusNameInvalidException, StatusNotFoundException
+from app.api.exceptions.global_exceptions import InternalServerErrorException, StatusAlreadyExistsException, StatusInUseException, StatusNameInvalidException, StatusNotFoundException
 from app.api.services.order_status_service import OrderStatusService
 from fastapi import APIRouter, HTTPException, status
 
@@ -47,3 +47,16 @@ def update_order_status(status_id: UUID, name: str):
         raise InternalServerErrorException()
 
     return updated_status
+
+@router.delete("/statuses/{status_id}", status_code=status.HTTP_200_OK)
+def remove_order_status(status_id: UUID):
+    try:
+        order_status_service.remove_order_status(status_id=status_id)
+    except StatusNotFoundException as e:
+        raise e
+    except StatusInUseException as e:
+        raise e
+    except Exception:
+        raise InternalServerErrorException()
+
+    return {"detail": "Status deleted successfully"}
