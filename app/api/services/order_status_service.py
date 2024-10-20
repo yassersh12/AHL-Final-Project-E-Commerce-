@@ -1,4 +1,5 @@
 from typing import List
+from app.api.exceptions.global_exceptions import StatusAlreadyExistsException, StatusNotFoundException
 from app.models import OrderStatus
 
 class OrderStatusService:
@@ -7,7 +8,7 @@ class OrderStatusService:
 
     def create_order_status(self, name: str) -> OrderStatus:
         if any(status.name == name for status in self.order_statuses):
-            raise ValueError("Order status with this name already exists.")
+            raise StatusAlreadyExistsException()
 
         new_status = OrderStatus(name=name)
         self.order_statuses.append(new_status)
@@ -17,4 +18,4 @@ class OrderStatusService:
         for status in self.order_statuses:
             if status.name == name:
                 return status
-        raise ValueError("Order status not found.")
+        raise StatusNotFoundException()
