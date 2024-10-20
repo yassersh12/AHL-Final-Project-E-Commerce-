@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, condecimal, constr
+from pydantic import BaseModel, Field, condecimal, constr, validator
 from uuid import UUID
 from datetime import datetime
 from typing import Optional
@@ -8,11 +8,17 @@ import uuid
 
 
 class ProductCreate(BaseModel):
-    name: str = Field(None)
+    name: str = Field(..., description="Product name")
     description: str = Field(None)
-    price: float = Field(None)
-    stock: int = Field(None)
+    price: float = Field(..., gt=0)
+    stock: int = Field(..., ge=0)
     is_available: bool = Field(None)
+
+    @validator("name")
+    def validate_name(cls, v):
+        if not v or len(v.strip()) == 0:
+            raise ValueError("Product name cannot be empty")
+        return v
 
     class Config:
         from_attributes = True
@@ -43,6 +49,12 @@ class ProductUpdate(BaseModel):
     price: float = Field(None)
     stock: int = Field(None)
     is_available: bool = Field(None)
+
+    @validator("name", always=True)
+    def validate_name(cls, v):
+        if v is not None and len(v.strip()) == 0:
+            raise ValueError("Product name cannot be empty")
+        return v
 
     class Config:
         from_attributes = True

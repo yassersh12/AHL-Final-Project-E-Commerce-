@@ -1,138 +1,112 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Query
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
-from app.api.services.product_service import ProductService
-from app.api.exceptions.GlobalException import (
-    ProductNotFoundException,
-    ProductAlreadyExistsException,
-    InvalidProductDataException,
+from app.schemas.product import (
+    ProductCreate,
+    ProductResponse,
+    ProductUpdate,
+    ProductSearchParams,
 )
-from app.api.dependencies.ProductValidator import ProductValidator
+from fastapi import HTTPException, status, Query, Depends
+from app.api.services.product_service import ProductService
 from uuid import UUID
-from app.models import Product, ProductSearchParams
-from typing import Optional, List
-from decimal import Decimal
-from sqlalchemy import asc, desc
+from typing import List, Optional, Dict
+from app.api.exceptions.global_exceptions import (
+    ProductAlreadyExistsException,
+    PriceValidationException,
+    ProductNotFoundException,
+    StockValidationException,
+    InvalidUUIDException,
+    InvalidProductDataException,
+    ProductValidationException,
+)
+from app.api.dependencies.product_validator import ProductValidator
+from app.models import Product
 
 router = APIRouter()
 
 
-@router.post(
-    "/products/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
-    validator = ProductValidator(db)
+    service = ProductService(db)
 
-    try:
-        validator.validate_unique_name(product_data.name)
-        validator.validate_product_data(product_data)
-
-        new_product = Product(**product_data.dict())
-
-        db.add(new_product)
-        db.commit()
-        db.refresh(new_product)
-
-        return new_product
-    except InvalidProductDataException as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.detail)
-    except Exception as e:
+    if service._is_product_existing(name=product_data.name):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+            status_code=status.HTTP_409_CONFLICT, detail="Product already exists."
         )
 
+    new_product = Product(**product_data.dict())
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
 
-@router.get("/products/{product_id}", response_model=ProductResponse)
-def get_product(product_id: UUID, db: Session = Depends(get_db)):
+    return new_product
+
+
+@router.get("/{product_id}", response_model=ProductResponse)
+def get_product(
+    product_id: str,
+    db: Session = Depends(get_db),
+):
+
+    try:
+        product_id = UUID(product_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid UUID!"
+        )
+
     service = ProductService(db)
     try:
         return service.get_product_by_id(product_id)
-    except ProductNotFoundException as e:
+    except ProductNotFoundException:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found."
         )
 
 
-@router.put("/products/{product_id}", response_model=ProductResponse)
-def update_product(
-    product_id: UUID, product_data: ProductUpdate, db: Session = Depends(get_db)
-):
-    validator = ProductValidator(db)
-    service = ProductService(db)
-
-    try:
-        existing_product = service.get_product_by_id(product_id)
-        if not existing_product:
-            raise ProductNotFoundException(product_id)
-
-        if product_data.name and product_data.name != existing_product.name:
-            validator.validate_unique_name(product_data.name)
-
-        validator.validate_product_data(product_data)
-
-        updated_product = service.update_product(product_id, product_data)
-
-        return updated_product
-    except ProductNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-    except InvalidProductDataException as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.detail)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
-        )
-
-
-@router.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(product_id: UUID, response: Response, db: Session = Depends(get_db)):
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_product(product_id: UUID, db: Session = Depends(get_db)):
     service = ProductService(db)
     try:
         service.delete_product(product_id)
-        response.status_code = status.HTTP_204_NO_CONTENT
-    except ProductNotFoundException as e:
+        return
+    except ProductNotFoundException:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found."
+        )
+    except InvalidUUIDException:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid UUID!"
         )
 
 
-@router.get("/products", response_model=list[ProductResponse])
-def get_all_products(db: Session = Depends(get_db)):
-    service = ProductService(db)
-    return service.get_all_products()
-
-
-@router.get("/products/buy/search", response_model=List[ProductResponse])
+@router.get("/", response_model=Dict)
 def search_products(
-    name: str = Query(None, description="Name of the product to search for"),
-    min_price: float = Query(None, description="Minimum price search"),
-    max_price: float = Query(None, description="Maximum price search"),
-    is_available: bool = Query(None, description="Availability status search"),
+    name: Optional[str] = Query(None, description="Filter by product name"),
+    min_price: Optional[float] = Query(None, description="Filter by minimum price"),
+    max_price: Optional[float] = Query(None, description="Filter by maximum price"),
+    isAvailable: Optional[bool] = Query(None, description="Filter by availability"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Products per page"),
+    sort_by: str = Query("name", description="Sort by field"),
+    sort_order: str = Query("asc", description="Sort order: asc or desc"),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Product)
-
-    if name:
-        query = query.filter(Product.name.ilike(f"%{name}%"))
-    if min_price is not None:
-        query = query.filter(Product.price >= min_price)
-    if max_price is not None:
-        query = query.filter(Product.price <= max_price)
-    if is_available is not None:
-        query = query.filter(Product.is_available == is_available)
-
-    products = query.all()
-
-    if not products:
-        raise HTTPException(
-            status_code=404,
-            detail="No products found in the database ->  matching the criteria",
+    service = ProductService(db)
+    try:
+        params = ProductSearchParams(
+            name=name,
+            min_price=min_price,
+            max_price=max_price,
+            isAvailable=isAvailable,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
-
-    return [ProductResponse.from_orm(product) for product in products]
+        return service.search_products(params)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred.",
+        )
