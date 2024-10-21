@@ -3,23 +3,29 @@ from typing import List
 from uuid import UUID
 from app.api.exceptions.global_exceptions import StatusAlreadyExistsException, StatusInUseException, StatusNotFoundException
 from app.models import OrderStatus
+from sqlalchemy.orm import Session
+
 
 class OrderStatusService:
-    def __init__(self):
-        self.order_statuses: List[OrderStatus] = []
+    def __init__(self, db : Session):
+        self.db = db
 
     def create_order_status(self, name: str) -> OrderStatus:
-        if any(status.name == name for status in self.order_statuses):
+        if self.db.query(OrderStatus).filter(OrderStatus.name == name).first():
             raise StatusAlreadyExistsException()
 
         new_status = OrderStatus(name=name)
-        self.order_statuses.append(new_status)
+        self.db.add(new_status)
+        self.db.commit()
+        self.db.refresh(new_status)
+        
         return new_status
 
     def get_order_status_by_name(self, name: str) -> OrderStatus:
-        for status in self.order_statuses:
-            if status.name == name:
-                return status
+        status = self.db.query(OrderStatus).filter(OrderStatus.name == name).first()
+        if status :
+            return status
+        
         raise StatusNotFoundException()
     
     def get_order_status_by_id(self, status_id: UUID) -> OrderStatus:
