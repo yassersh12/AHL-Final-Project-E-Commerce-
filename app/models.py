@@ -1,8 +1,9 @@
-from sqlalchemy import Column, String, Boolean, DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import List, Optional
+from sqlalchemy import Column, ForeignKey, DECIMAL, DateTime, Integer, String, Boolean
 from sqlalchemy.dialects.postgresql import UUID
-import uuid
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
+import uuid
 from app.db.database import Base
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
@@ -31,40 +32,40 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     
-class Order(BaseModel):
-    id: UUID = Field(default_factory=lambda: uuid4(), description="Order ID.")
-    user_id: Optional[UUID] = Field(None, description="User ID connected to a user.") # references user, SET NULL on delete, on database implementation
-    status_id: Optional[UUID] = Field(None, description="Status ID connected to an order_status.") # references order_status, SET NULL on delete, on database implementation
-    total_price: Decimal = Field(..., description="Total price of the order.", gt=0, max_digits=10, decimal_places=2)
-    created_at: datetime = Field(datetime.now, description="Time the order is created at.")
-    updated_at: datetime = Field(None, description="Time of the last update for the order.")
+class Order(Base):
+    __tablename__ = "orders"
 
-class OrderProductResponse(BaseModel):
-    product_id: UUID = Field(..., description="Product ID connected to the order.")
-    quantity: int = Field(..., description="Quantity of the product in the order.")
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    status_id = Column(UUID(as_uuid=True), ForeignKey("order_status.id", ondelete="SET NULL"), nullable=True)
+    total_price = Column(DECIMAL(10, 2), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.now)
+    updated_at = Column(DateTime(timezone=True), onupdate=datetime.now)
 
-class OrderResponse(BaseModel):
-    id: UUID = Field(..., description="Order ID.")
-    user_id: Optional[UUID] = Field(None, description="User ID connected to the order.")
-    status: str = Field(..., description="Status of the order.")  # e.g., "pending"
-    total_price: Decimal = Field(..., description="Total price of the order.", gt=0, max_digits=10, decimal_places=2)
-    created_at: datetime = Field(..., description="Time the order was created.")
-    updated_at: Optional[datetime] = Field(None, description="Time of the last update for the order.")
-    products: List[OrderProductResponse] = Field(..., description="List of products in the order.")
+    user = relationship("User", back_populates="orders")
+    status = relationship("OrderStatus", back_populates="orders")
+    products = relationship("OrderProduct", back_populates="order", cascade="all, delete-orphan")
+
+class OrderProduct(Base):
+    __tablename__ = "order_products"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
+    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id", ondelete="SET NULL"), nullable=True)
+    quantity = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.now)
+    updated_at = Column(DateTime(timezone=True), onupdate=datetime.now)
+
+    order = relationship("Order", back_populates="products")
+    product = relationship("Product", back_populates="order_products")
+
 
 class OrderStatus(BaseModel):
-    id: UUID = Field(default_factory=lambda: uuid4(), description="order_status ID.")
+    id: UUID = Field(default_factory=lambda: uuid.uuid4(), description="order_status ID.")
     name: str = Field("pending", description="Name of the order_status.", unique=True)
     created_at: datetime = Field(datetime.now, description="Time the order_status is created at.")
     updated_at: datetime = Field(None, description="Time of the last update for the order_status.")
 
-class OrderProduct(BaseModel):
-    id: UUID = Field(default_factory=lambda: uuid4(), description="order_product ID.")
-    order_id: Optional[UUID] = Field(None, description="Order ID connected to an order.") # references order, CASCADE on delete, on database implementation
-    product_id: Optional[UUID] = Field(None, description="Product ID connected to an Product.") # references product, SET NULL on delete, on database implementation
-    quantity: int = Field(..., description="Quantity of order_products.")
-    created_at: datetime = Field(datetime.now, description="Time the order_product is created at.")
-    updated_at: datetime = Field(None, description="Time of the last update for the order_product.")
