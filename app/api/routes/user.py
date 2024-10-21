@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.schemas.user import UserCreateRequest, UserResponse, UserUpdateRequest
+from app.schemas.user import (
+    UserCreateRequest,
+    UserResponse,
+    UserUpdateRequest,
+    ChangeRoleRequest,
+)
 from app.api.services.user_service import UserService
 from app.api.exceptions.global_exceptions import (
     InvalidPasswordException,
@@ -98,3 +103,16 @@ def get_all_users(
 ):
     service = UserService(db)
     return service.get_all_users()
+
+
+@router.put("/users/change_role", status_code=status.HTTP_200_OK)
+def change_role(
+    request: ChangeRoleRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_admin),
+):
+    try:
+        UserService.change_user_role(request.user_id, request.is_admin, db)
+        return {"message": "User role updated successfully."}
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
