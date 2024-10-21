@@ -29,9 +29,10 @@ class OrderStatusService:
         raise StatusNotFoundException()
     
     def get_order_status_by_id(self, status_id: UUID) -> OrderStatus:
-        for status in self.order_statuses:
-            if status.id == status_id:
-                return status
+        status = self.db.query(OrderStatus).filter(OrderStatus.id == status_id).first()
+        if status :
+            return status
+        
         raise StatusNotFoundException()
     
     def update_order_status(self, status_id: UUID, name: str) -> OrderStatus:
