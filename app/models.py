@@ -38,29 +38,44 @@ class User(Base):
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    status_id = Column(UUID(as_uuid=True), ForeignKey("order_status.id", ondelete="SET NULL"), nullable=True)
-    total_price = Column(DECIMAL(10, 2), nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.now)
-    updated_at = Column(DateTime(timezone=True), onupdate=datetime.now)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    status_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("order_status.id", ondelete="SET NULL"), nullable=True
+    )
+    total_price: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), onupdate=datetime.utcnow)
 
-    user = relationship("User", back_populates="orders")
-    status = relationship("OrderStatus", back_populates="orders")
-    products = relationship("OrderProduct", back_populates="order", cascade="all, delete-orphan")
+    user: Mapped["User"] = relationship("User", back_populates="orders")
+    status: Mapped["OrderStatus"] = relationship("OrderStatus", back_populates="orders")
+    products: Mapped[List["OrderProduct"]] = relationship(
+        "OrderProduct", back_populates="order", cascade="all, delete-orphan"
+    )
+
 
 class OrderProduct(Base):
     __tablename__ = "order_products"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
-    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id", ondelete="SET NULL"), nullable=True)
-    quantity = Column(Integer, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.now)
-    updated_at = Column(DateTime(timezone=True), onupdate=datetime.now)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False
+    )
+    product_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="SET NULL"), nullable=True
+    )
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), onupdate=datetime.utcnow)
 
-    order = relationship("Order", back_populates="products")
-    product = relationship("Product", back_populates="order_products")
+    order: Mapped["Order"] = relationship("Order", back_populates="products")
+    product: Mapped["Product"] = relationship("Product", back_populates="order_products")
 
 
 class OrderStatus(BaseModel):
