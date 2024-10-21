@@ -34,8 +34,12 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
-class OrderStatus(BaseModel):
-    id: UUID = Field(default_factory=lambda: uuid4(), description="order_status ID.")
-    name: str = Field("pending", description="Name of the order_status.", unique=True)
-    created_at: datetime = Field(datetime.now, description="Time the order_status is created at.")
-    updated_at: datetime = Field(None, description="Time of the last update for the order_status.")
+class OrderStatus(Base):
+    __tablename__ = "order_status"
+
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False, default="pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=datetime.now)
