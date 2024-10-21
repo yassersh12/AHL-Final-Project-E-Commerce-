@@ -104,17 +104,21 @@ class OrderService:
         )
 
     
-
     def cancel_order(self, order_id: UUID) -> None:
-        order = self.orders.get(order_id)
+        order = self.db.query(Order).filter(Order.id == order_id).first()
         status = order_status_service.get_order_status_by_name('pending')
+        
         if not order:
             raise OrderNotFoundException()
         elif order.status_id != status.id:
-            raise HTTPException(            
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Only pending orders can be canceled."
             )
-        
-        order.status_id = 'canceled'
+
+        canceled_status = order_status_service.get_order_status_by_name('canceled')
+        order.status_id = canceled_status.id
         order.updated_at = datetime.now()
+
+        self.db.commit()
+
