@@ -1,5 +1,5 @@
 from uuid import UUID
-from app.api.exceptions.GlobalException import InternalServerErrorException, OrderNotFoundException, OutOfStockException, ProductDoesNotExistException
+from app.api.exceptions.global_exceptions import InternalServerErrorException, OrderNotFoundException, OutOfStockException, ProductDoesNotExistException
 from app.api.routes import status
 from app.api.services.order_service import OrderService
 from fastapi import FastAPI, HTTPException, APIRouter

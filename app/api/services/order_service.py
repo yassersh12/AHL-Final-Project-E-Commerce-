@@ -51,20 +51,22 @@ class OrderService:
 
 
     def get_order_by_id(self, order_id: UUID) -> OrderResponse:
-        order = self.orders.get(order_id)
+
+        order = self.db.query(Order).filter(Order.id == order_id).first()
         if not order:
             raise OrderNotFoundException()
 
-        order_products = self.order_products.get(order_id, [])
+        order_products = self.db.query(OrderProduct).filter(OrderProduct.order_id == order_id).all()
 
-        product_responses = [
-            OrderProductResponse(
+        product_responses = []
+        for item in order_products:
+            product_response = OrderProductResponse(
                 product_id=item.product_id,
                 quantity=item.quantity
-            ) for item in order_products
-        ]
+            )
+            product_responses.append(product_response)
 
-        status_name = order_status_service.get_order_status_by_name(order.status_id).name
+        status_name = order_status_service.get_order_status_by_id(order.status_id).name
 
         return OrderResponse(
             id=order.id,
@@ -75,6 +77,7 @@ class OrderService:
             updated_at=order.updated_at,
             products=product_responses
         )
+
     
     
     def update_order_status(self, order_id: UUID, status_name: str) -> OrderResponse:
