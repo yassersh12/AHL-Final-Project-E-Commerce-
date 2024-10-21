@@ -1,26 +1,29 @@
 from datetime import datetime
 from uuid import uuid4, UUID
-from typing import Optional, Dict, List
-from app.api.exceptions.GlobalException import OrderNotFoundException, ProductDoesNotExistException, OutOfStockException, StatusNotFoundException
+from typing import Optional, List
+from app.api.exceptions.global_exceptions import OrderNotFoundException, ProductDoesNotExistException, OutOfStockException, StatusNotFoundException
 from app.api.services.order_status_service import OrderStatusService
 #from app.api.services.product_service import ProductService ## waiting for product merge
-from app.models import Order, OrderProduct, OrderProductResponse, OrderResponse
+from app.models import Order, OrderProduct
 from decimal import Decimal
+from app.schemas.order import OrderProductResponse, OrderResponse
 from fastapi import FastAPI, HTTPException, APIRouter, Query
+from sqlalchemy.orm import Session
+
 
 #product_service = ProductService() ## waiting for product merge
 order_status_service = OrderStatusService()
 
 class OrderService:
-    def __init__(self):
-        self.orders: Dict[UUID, Order] = {}
-        self.order_products: Dict[UUID, List[OrderProduct]] = {}
+    def __init__(self, db: Session):
+        self.db = db
   
     def create_order(self, order_items: List[OrderProductResponse], user_id: Optional[UUID] = None) -> Order:
         total_price = Decimal(0)
+        
         for index, item in enumerate(order_items):
             product = None
-            #product = self.product_service.get_product(item.product_id) ## waiting for product merge
+            # product = self.product_service.get_product(item.product_id) ## Replace with actual product retrieval
             if product is None:
                 raise ProductDoesNotExistException(index + 1)
             elif item.quantity > product.stock:
@@ -29,14 +32,21 @@ class OrderService:
             total_price += product.price * item.quantity
         
         status_id = order_status_service.get_order_status_by_name("pending").id
+        order_id = uuid4()
         order = Order(
-            id=uuid4(),
+            id=order_id,
+            user_id=user_id,
             total_price=total_price,
             status_id=status_id
         )
         
-        self.orders.append(order)
-
+        self.db.add(order)
+        
+        for item in order_items:
+            order_product = OrderProduct(order_id=order_id, product_id=item.product_id, quantity=item.quantity)
+            self.db.add(order_product)
+        
+        self.db.commit()
         return order
 
 
