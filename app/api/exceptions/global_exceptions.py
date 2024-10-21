@@ -1,4 +1,6 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
+from starlette.responses import JSONResponse
+from starlette import status
 
 
 class EmailAlreadyExistsException(HTTPException):
@@ -50,3 +52,18 @@ class InvalidUUIDException(HTTPException):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The provided user ID is not a valid UUID.",
         )
+
+
+class DatabaseCommitException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while saving the product to the database.",
+        )
+
+
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "An unexpected error occurred."},
+    )
