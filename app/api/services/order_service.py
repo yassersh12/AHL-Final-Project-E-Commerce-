@@ -78,27 +78,31 @@ class OrderService:
             products=product_responses
         )
 
-    
-    
+     
     def update_order_status(self, order_id: UUID, status_name: str) -> OrderResponse:
-        order = self.orders.get(order_id)
-        status = order_status_service.get_order_status_by_name(status_name)
+
+        order = self.db.query(Order).filter(Order.id == order_id).first()
         if not order:
             raise OrderNotFoundException()
-        elif not status:
+
+        status = order_status_service.get_order_status_by_name(status_name)
+        if not status:
             raise StatusNotFoundException()
         
         order.status_id = status.id
         order.updated_at = datetime.now()
+        
+        self.db.commit()
 
         return OrderResponse(
             id=order.id,
             user_id=order.user_id,
             status=status.id,
             total_price=order.total_price,
-            created_at=order.created_at.isoformat(),
-            updated_at=order.updated_at.isoformat()
+            created_at=order.created_at,
+            updated_at=order.updated_at
         )
+
     
 
     def cancel_order(self, order_id: UUID) -> None:
