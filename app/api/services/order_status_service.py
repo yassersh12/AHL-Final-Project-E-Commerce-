@@ -34,18 +34,22 @@ class OrderStatusService:
             return status
         
         raise StatusNotFoundException()
-    
+        
     def update_order_status(self, status_id: UUID, name: str) -> OrderStatus:
-        if any(status.name == name for status in self.order_statuses):
+        if self.db.query(OrderStatus).filter(OrderStatus.name == name).first():
             raise StatusAlreadyExistsException()
 
-        for status in self.order_statuses:
-            if status.id == status_id:
-                status.name = name
-                status.updated_at = datetime.now()
-                return status
+        status = self.db.query(OrderStatus).filter(OrderStatus.id == status_id).first()
         
-        raise StatusNotFoundException()
+        if not status:
+            raise StatusNotFoundException()
+
+        status.name = name
+        status.updated_at = datetime.now()
+
+        self.db.commit()
+        
+        return status
     
     def is_status_in_use(self, status_id: UUID) -> bool:
         return any(order.status_id == status_id for order in self.orders)
