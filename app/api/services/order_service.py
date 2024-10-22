@@ -8,7 +8,7 @@ from app.models import Order, OrderProduct
 from decimal import Decimal
 from app.schemas.order import OrderCreationResponse, OrderItem, OrderResponse
 from fastapi import FastAPI, HTTPException, APIRouter, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload  
 
 
 product_service = ProductService()
@@ -55,18 +55,18 @@ class OrderService:
         return order_response
 
     def get_order_by_id(self, order_id: UUID) -> OrderResponse:
+        order = self.db.query(Order).filter(Order.id == order_id)\
+            .options(joinedload(Order.order_products))\
+            .first()
 
-        order = self.db.query(Order).filter(Order.id == order_id).first()
         if not order:
             raise OrderNotFoundException()
 
-        order_products = self.db.query(OrderProduct).filter(OrderProduct.order_id == order_id).all()
-
         product_responses = []
-        for item in order_products:
+        for product in order.order_products:
             product_response = OrderItem(
-                product_id=item.product_id,
-                quantity=item.quantity
+                product_id=product.product_id,
+                quantity=product.quantity
             )
             product_responses.append(product_response)
 
@@ -81,6 +81,7 @@ class OrderService:
             updated_at=order.updated_at,
             products=product_responses
         )
+
 
      
     def update_order_status(self, order_id: UUID, status_name: str) -> OrderResponse:
