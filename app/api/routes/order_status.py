@@ -8,8 +8,6 @@ order_status_service = OrderStatusService
 
 @router.post("/statuses/", status_code=status.HTTP_201_CREATED)
 def create_order_status(name: str):
-    if not name:
-        raise StatusNameInvalidException()
 
     try:
         new_status = order_status_service.create_order_status(name=name)
@@ -20,6 +18,7 @@ def create_order_status(name: str):
 
 @router.get("/statuses/{status_id}", status_code=status.HTTP_200_OK)
 def get_order_status_by_id(status_id: UUID):
+
     try:
         order_status = order_status_service.get_order_status_by_id(status_id=status_id)
     except Exception:
@@ -30,8 +29,6 @@ def get_order_status_by_id(status_id: UUID):
 
 @router.put("/statuses/{status_id}", status_code=status.HTTP_200_OK)
 def update_order_status(status_id: UUID, name: str):
-    if not name:
-        raise StatusNameInvalidException()
 
     try:
         updated_status = order_status_service.update_order_status(status_id=status_id, name=name)
@@ -42,6 +39,7 @@ def update_order_status(status_id: UUID, name: str):
 
 @router.delete("/statuses/{status_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_order_status(status_id: UUID):
+    
     try:
         order_status_service.remove_order_status(status_id=status_id)
     except Exception:
