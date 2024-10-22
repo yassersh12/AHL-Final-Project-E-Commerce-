@@ -4,7 +4,7 @@ from datetime import datetime
 from uuid import UUID
 from decimal import Decimal
 
-class OrderProductResponse(BaseModel):
+class OrderItem(BaseModel):
     product_id: UUID = Field(..., description="Product ID connected to the order.")
     quantity: int = Field(..., description="Quantity of the product in the order.")
 

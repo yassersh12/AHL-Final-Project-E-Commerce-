@@ -2,7 +2,7 @@ from uuid import UUID
 from app.api.exceptions.global_exceptions import InternalServerErrorException, OrderNotFoundException, OutOfStockException, ProductDoesNotExistException
 from app.api.routes import status
 from app.api.services.order_service import OrderService
-from app.schemas.order import OrderCreationResponse, OrderProductResponse, OrderResponse
+from app.schemas.order import OrderCreationResponse, OrderItem, OrderResponse
 from fastapi import FastAPI, HTTPException, APIRouter
 from typing import List, Optional
 from fastapi.responses import JSONResponse
@@ -12,7 +12,7 @@ router = APIRouter()
 order_service = OrderService()
 
 @router.post("/orders", response_model=OrderCreationResponse)
-def create_order(orderItems : List[OrderProductResponse]):
+def create_order(orderItems : List[OrderItem]):
     try:
         orderResponse = order_service.create_order(order_items= orderItems)
     except Exception:
