@@ -3,7 +3,7 @@ from uuid import uuid4, UUID
 from typing import Optional, List
 from app.api.exceptions.global_exceptions import OrderNotFoundException, ProductDoesNotExistException, OutOfStockException, StatusNotFoundException
 from app.api.services.order_status_service import OrderStatusService
-#from app.api.services.product_service import ProductService ## waiting for product merge
+from app.api.services.product_service import ProductService 
 from app.models import Order, OrderProduct
 from decimal import Decimal
 from app.schemas.order import OrderCreationResponse, OrderItem, OrderResponse
@@ -11,7 +11,7 @@ from fastapi import FastAPI, HTTPException, APIRouter, Query
 from sqlalchemy.orm import Session
 
 
-#product_service = ProductService() ## waiting for product merge
+product_service = ProductService()
 order_status_service = OrderStatusService()
 
 class OrderService:
@@ -22,8 +22,7 @@ class OrderService:
         total_price = Decimal(0)
         
         for index, item in enumerate(order_items):
-            product = None
-            # product = self.product_service.get_product(item.product_id) ## Replace with actual product retrieval
+            product = self.product_service.get_product(item.product_id)
             if product is None:
                 raise ProductDoesNotExistException(index + 1)
             elif item.quantity > product.stock:
