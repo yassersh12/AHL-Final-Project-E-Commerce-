@@ -20,7 +20,17 @@ class OrderService:
   
     def create_order(self, order_items: List[OrderItem], user_id: Optional[UUID] = None) -> OrderCreationResponse:
         total_price = Decimal(0)
+
+        status_id = order_status_service.get_order_status_by_name("pending").id
+        order = Order(
+            user_id=user_id,
+            total_price=total_price,
+            status_id=status_id
+        )
         
+        self.db.add(order)
+        self.db.flush()
+
         for index, item in enumerate(order_items):
             product = self.product_service.get_product(item.product_id)
             if product is None:
@@ -29,32 +39,20 @@ class OrderService:
                 raise OutOfStockException(index + 1)
 
             total_price += product.price * item.quantity
+            product.stock -= item.quantity 
+            
+            self.db.add(OrderProduct(order_id=order.id, product_id=item.product_id, quantity=item.quantity))
         
-        status_id = order_status_service.get_order_status_by_name("pending").id
-        order_id = uuid4()
-        order = Order(
-            id=order_id,
-            user_id=user_id,
-            total_price=total_price,
-            status_id=status_id
-        )
-        
-        self.db.add(order)
-        
-        for item in order_items:
-            order_product = OrderProduct(order_id=order_id, product_id=item.product_id, quantity=item.quantity)
-            self.db.add(order_product)
-        
-        self.db.commit()
+        self.db.commit()  
 
-        orderResponse = OrderCreationResponse(
+        order_response = OrderCreationResponse(
             id=order.id,
             user_id=user_id,
             total_price=total_price,
             status_id=status_id
         )
-        return orderResponse
-
+        
+        return order_response
 
     def get_order_by_id(self, order_id: UUID) -> OrderResponse:
 
