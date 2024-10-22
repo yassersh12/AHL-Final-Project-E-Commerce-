@@ -2,25 +2,25 @@ from uuid import UUID
 from app.api.exceptions.global_exceptions import InternalServerErrorException, OrderNotFoundException, OutOfStockException, ProductDoesNotExistException
 from app.api.routes import status
 from app.api.services.order_service import OrderService
+from app.schemas.order import OrderCreationResponse, OrderProductResponse, OrderResponse
 from fastapi import FastAPI, HTTPException, APIRouter
 from typing import List, Optional
-from app.models import Order, OrderItem, OrderResponse
 from fastapi.responses import JSONResponse
 
 
 router = APIRouter()
 order_service = OrderService()
 
-@router.post("/orders", response_model=Order)
-def create_order(orderItems : List[OrderItem]):
+@router.post("/orders", response_model=OrderCreationResponse)
+def create_order(orderItems : List[OrderProductResponse]):
     try:
-        order = order_service.create_order(order_items= orderItems)
+        orderResponse = order_service.create_order(order_items= orderItems)
     except Exception:
         raise InternalServerErrorException()
 
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
-        content=order.dict(exclude={"updated_at"})
+        content=orderResponse.dict()
     )
 
 @router.get("/orders/{order_id}", response_model=OrderResponse)

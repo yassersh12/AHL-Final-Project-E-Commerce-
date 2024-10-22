@@ -6,7 +6,7 @@ from app.api.services.order_status_service import OrderStatusService
 #from app.api.services.product_service import ProductService ## waiting for product merge
 from app.models import Order, OrderProduct
 from decimal import Decimal
-from app.schemas.order import OrderProductResponse, OrderResponse
+from app.schemas.order import OrderCreationResponse, OrderProductResponse, OrderResponse
 from fastapi import FastAPI, HTTPException, APIRouter, Query
 from sqlalchemy.orm import Session
 
@@ -18,7 +18,7 @@ class OrderService:
     def __init__(self, db: Session):
         self.db = db
   
-    def create_order(self, order_items: List[OrderProductResponse], user_id: Optional[UUID] = None) -> Order:
+    def create_order(self, order_items: List[OrderProductResponse], user_id: Optional[UUID] = None) -> OrderCreationResponse:
         total_price = Decimal(0)
         
         for index, item in enumerate(order_items):
@@ -47,7 +47,14 @@ class OrderService:
             self.db.add(order_product)
         
         self.db.commit()
-        return order
+
+        orderResponse = OrderCreationResponse(
+            id=order.id,
+            user_id=user_id,
+            total_price=total_price,
+            status_id=status_id
+        )
+        return orderResponse
 
 
     def get_order_by_id(self, order_id: UUID) -> OrderResponse:
