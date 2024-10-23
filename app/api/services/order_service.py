@@ -1,7 +1,8 @@
 from datetime import datetime
 from uuid import uuid4, UUID
 from typing import Optional, List
-from app.api.exceptions.global_exceptions import OrderNotFoundException, ProductDoesNotExistException, OutOfStockException, ProductNotAvailableException, StatusNotFoundException
+from app.api.exceptions.global_exceptions import OrderNotFoundException, ProductDoesNotExistException, OutOfStockException, StatusNotFoundException
+from app.api.routes import status
 from app.api.services.order_status_service import OrderStatusService
 from app.api.services.product_service import ProductService 
 from app.models import Order, OrderProduct, Product
@@ -38,7 +39,10 @@ class OrderService:
             if item.quantity > product.stock:
                 raise OutOfStockException(index + 1)
             if not product.is_available :
-                raise ProductNotAvailableException()
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="The product is not currently available."
+                )
 
             total_price += product.price * item.quantity
             product.stock -= item.quantity 
