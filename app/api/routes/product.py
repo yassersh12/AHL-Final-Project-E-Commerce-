@@ -18,13 +18,18 @@ from app.api.exceptions.global_exceptions import (
 )
 from sqlalchemy.exc import IntegrityError
 from app.api.dependencies.product_validator import ProductValidator
-from app.models import Product
+from app.models import Product, User
+from app.api.dependencies.auth import get_current_active_admin, get_current_active_user
 
 router = APIRouter()
 
 
 @router.post("/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
-def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
+def create_product(
+    product_data: ProductCreate,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_active_admin),
+):
     service = ProductService(db)
 
     try:
@@ -72,8 +77,15 @@ def get_product(
         )
 
 
-@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(product_id: UUID, db: Session = Depends(get_db)):
+@router.delete(
+    "/{product_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_product(
+    product_id: UUID,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_active_admin),
+):
     service = ProductService(db)
     try:
         service.delete_product(product_id)
