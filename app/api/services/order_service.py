@@ -35,7 +35,7 @@ class OrderService:
             product = self.product_service.get_product(item.product_id)
             if product is None:
                 raise ProductDoesNotExistException(index + 1)
-            elif item.quantity > product.stock:
+            if item.quantity > product.stock:
                 raise OutOfStockException(index + 1)
 
             total_price += product.price * item.quantity

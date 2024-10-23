@@ -83,7 +83,28 @@ class StatusNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Status not found",
+            detail="Order status not found.",
+        )
+
+class StatusAlreadyExistsException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Order status with this name already exists.",
+        )
+
+class StatusNameInvalidException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Order status name is required and must be a string.",
+        )
+
+class StatusInUseException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Status cannot be deleted because it is in use"
         )
 
 class InternalServerErrorException(HTTPException):
@@ -92,7 +113,6 @@ class InternalServerErrorException(HTTPException):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail=f"An unexpected error occurred."
         )
-
 
 class DatabaseCommitException(HTTPException):
     def __init__(self):
