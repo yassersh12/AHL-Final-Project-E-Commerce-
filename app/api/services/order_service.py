@@ -1,10 +1,10 @@
 from datetime import datetime
 from uuid import uuid4, UUID
 from typing import Optional, List
-from app.api.exceptions.global_exceptions import OrderNotFoundException, ProductDoesNotExistException, OutOfStockException, StatusNotFoundException
+from app.api.exceptions.global_exceptions import OrderNotFoundException, ProductDoesNotExistException, OutOfStockException, ProductNotAvailableException, StatusNotFoundException
 from app.api.services.order_status_service import OrderStatusService
 from app.api.services.product_service import ProductService 
-from app.models import Order, OrderProduct
+from app.models import Order, OrderProduct, Product
 from decimal import Decimal
 from app.schemas.order import OrderCreationResponse, OrderItem, OrderResponse
 from fastapi import FastAPI, HTTPException, APIRouter, Query
@@ -37,6 +37,8 @@ class OrderService:
                 raise ProductDoesNotExistException(index + 1)
             if item.quantity > product.stock:
                 raise OutOfStockException(index + 1)
+            if not product.is_available :
+                raise ProductNotAvailableException()
 
             total_price += product.price * item.quantity
             product.stock -= item.quantity 

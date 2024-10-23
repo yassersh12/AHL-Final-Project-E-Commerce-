@@ -61,6 +61,13 @@ class ProductDoesNotExistException(HTTPException):
             detail=detail_message,
         )
 
+class ProductNotAvailableException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The product is not currently available.",
+        )
+
 class OutOfStockException(HTTPException):
     def __init__(self, item_number: int = None):
         if item_number is not None:

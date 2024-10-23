@@ -1,3 +1,4 @@
+from dataclasses import Field
 from typing import List, Optional
 from sqlalchemy import Column, ForeignKey, DECIMAL, DateTime, Integer, String, Boolean
 from sqlalchemy.dialects.postgresql import UUID
@@ -70,18 +71,13 @@ class Product(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    order_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False
-    )
-    product_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("products.id", ondelete="SET NULL"), nullable=True
-    )
-    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), onupdate=datetime.utcnow)
-
-    order: Mapped["Order"] = relationship("Order", back_populates="products")
-    product: Mapped["Product"] = relationship("Product", back_populates="order_products")
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=True)
+    price: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
+    stock: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_available: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
 
 class OrderStatus(BaseModel):
