@@ -35,3 +35,8 @@ class UserUpdateRequest(BaseModel):
         from_attributes = True
         orm_mode = True
         arbitrary_types_allowed = True
+
+
+class ChangeRoleRequest(BaseModel):
+    user_id: UUID
+    is_admin: bool

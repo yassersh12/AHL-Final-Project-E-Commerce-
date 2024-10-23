@@ -80,3 +80,13 @@ class UserService:
 
     def get_all_users(self):
         return self.db.query(User).all()
+    
+    
+    def change_user_role(self, user_id: str, is_admin: bool, db: Session):
+        user = self.get_user_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found.")
+
+        user.is_admin = is_admin
+        db.commit()
+        db.refresh(user)
