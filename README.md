@@ -1,4 +1,4 @@
-# Final-Project---Team-1
+# Final-Project---Team-3
 
 ## Setup Instructions
 
